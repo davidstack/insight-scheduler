@@ -1,0 +1,20 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: insightscheduler
+  name: insightscheduler
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: insightscheduler
+      name: insightscheduler
+    spec:
+      containers:
+        - name: scheduler
+          image: registry.iop.com:5000/library/insightscheduler:0.1
+          env:
+          - name: API_HOST
+            value: 10.110.17.45:8080

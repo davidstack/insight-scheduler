@@ -1,0 +1,99 @@
+# A headless service to create DNS records
+apiVersion: v1
+kind: Service
+metadata:
+  name: ambari-cluster-1-agent
+  namespace: bigdata
+  labels:
+    app: ambari-cluster-1-agent
+spec:
+  clusterIP: None
+  ports:
+  - port: 8670
+  selector:
+    app: ambari-cluster-1-agent
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: ambari-cluster-1-agent
+  namespace: bigdata
+spec:
+  serviceName: "ambari-cluster-1-agent"
+  replicas: 6
+  template:
+    metadata:
+      labels:
+        app: ambari-cluster-1-agent
+        type: insight-statefulset
+    spec:
+      schedulerName: insight-scheduler
+      containers:
+      - name: ambari-cluster-1-agent
+        image: registry.iop.com:5000/bigdata/insigth-agent:3.6
+        imagePullPolicy: IfNotPresent
+        command:
+           - /usr/local/bin/start.sh
+        securityContext:
+          privileged: true
+        env:
+        - name: ambari_cluster_1_agent_0
+          value: master1
+        - name: ambari_cluster_1_agent_1
+          value: master2
+        - name: ambari_cluster_1_agent_2
+          value: master3
+        - name: ambari_cluster_1_agent_3
+          value: slave1
+        - name: ambari_cluster_1_agent_4
+          value: slave2
+        - name: ambari_cluster_1_agent_5
+          value: slave3
+        volumeMounts:
+        - name: vol1
+          mountPath: /mnt/vol1
+        - name: vol2
+          mountPath: /mnt/vol2
+        - name: vol3
+          mountPath: /mnt/vol3
+        - name: tz-config
+          mountPath: /etc/localtime
+        - name: hdp
+          mountPath: /usr/hdp
+      volumes:
+      - name: tz-config
+        hostPath:
+          path: /usr/share/zoneinfo/Asia/Shanghai
+  volumeClaimTemplates:
+  - metadata:
+      name: vol1
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: hostpath
+      resources:
+        requests:
+          storage: 1Gi
+  - metadata:
+      name: vol2
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: hostpath
+      resources:
+        requests:
+          storage: 1Gi
+  - metadata:
+      name: vol3
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: hostpath
+      resources:
+        requests:
+          storage: 1Gi
+  - metadata:
+      name: hdp
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: hostpath
+      resources:
+        requests:
+          storage: 5Gi
